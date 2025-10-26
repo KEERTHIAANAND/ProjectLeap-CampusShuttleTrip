@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Campus Shuttle Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" th:href="@{/}">
+                <i class="bi bi-bus-front"></i>
+                Campus Shuttle Tracker
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${userRole == 'Admin'}">
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="bi bi-gear"></i> Admin
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${loggedInUser == null}">
+                        <a class="nav-link" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown" th:if="${loggedInUser != null}">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> 
+                            <span th:text="${loggedInUser.name}">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <small class="text-muted">Role: </small>
+                                    <span class="badge bg-primary" th:text="${userRole}">Role</span>
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/dashboard}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Campus Shuttle Tracker</h1>
+                    <p class="lead">Stay connected with real-time shuttle tracking, schedules, and campus transportation updates.</p>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a th:href="@{/dashboard}" class="btn btn-light btn-lg me-md-2" th:if="${loggedInUser != null}">
+                            <i class="bi bi-speedometer2"></i> View Dashboard
+                        </a>
+                        <a th:href="@{/login}" class="btn btn-light btn-lg me-md-2" th:if="${loggedInUser == null}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Continue
+                        </a>
+                        <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                            <i class="bi bi-info-circle"></i> Learn More
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="bi bi-bus-front display-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <!-- Status Cards -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success mb-3">
+                            <i class="bi bi-bus-front display-4"></i>
+                        </div>
+                        <h5 class="card-title">Active Shuttles</h5>
+                        <h2 class="text-success" th:text="${activeShuttleCount != null ? activeShuttleCount : 0}">0</h2>
+                        <p class="card-text text-muted" th:text="${'Out of ' + (totalShuttles != null ? totalShuttles : 0) + ' total shuttles'}">Currently running</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="text-primary mb-3">
+                            <i class="bi bi-geo-alt display-4"></i>
+                        </div>
+                        <h5 class="card-title">Active Trips</h5>
+                        <h2 class="text-primary" th:text="${activeTripCount != null ? activeTripCount : 0}">0</h2>
+                        <p class="card-text text-muted">In progress</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="text-info mb-3">
+                            <i class="bi bi-clock display-4"></i>
+                        </div>
+                        <h5 class="card-title">System Status</h5>
+                        <h2 class="text-info">Online</h2>
+                        <p class="card-text text-muted">All systems operational</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Trips Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-activity text-primary"></i>
+                            Active Trips
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${activeTrips != null and !activeTrips.empty}">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Trip ID</th>
+                                            <th>Shuttle</th>
+                                            <th>Date</th>
+                                            <th>Start Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="trip : ${activeTrips}">
+                                            <td th:text="${trip.tripId}">#001</td>
+                                            <td>
+                                                <span th:if="${trip.shuttle != null}" th:text="${trip.shuttle.shuttleNumber}">N/A</span>
+                                                <span th:unless="${trip.shuttle != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td th:text="${trip.tripDate}">2025-10-26</td>
+                                            <td th:text="${trip.startTime}">08:00</td>
+                                            <td>
+                                                <span class="badge" 
+                                                      th:classappend="${trip.currentStatus == 'Ongoing'} ? 'bg-success' : 
+                                                                     (${trip.currentStatus == 'Scheduled'} ? 'bg-primary' : 'bg-secondary')"
+                                                      th:text="${trip.currentStatus}">Active</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div th:unless="${activeTrips != null and !activeTrips.empty}" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-info-circle display-4 mb-3"></i>
+                                <h5>No Active Trips</h5>
+                                <p>There are currently no active shuttle trips. Check back later or visit the dashboard for more information.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a th:href="@{/dashboard}" class="btn btn-primary">
+                                <i class="bi bi-speedometer2"></i> View Dashboard
+                            </a>
+                            <a th:href="@{/admin}" class="btn btn-outline-primary">
+                                <i class="bi bi-gear"></i> Admin Panel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2025 Campus Shuttle Tracker. 
+                <span class="text-primary">Keeping campus transportation connected.</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">About Campus Shuttle Tracker</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Campus Shuttle Tracker helps students and staff monitor shuttle schedules, track real-time locations, and manage campus transportation efficiently.</p>
+                    <p><strong>Features:</strong></p>
+                    <ul>
+                        <li>Real-time shuttle tracking</li>
+                        <li>Schedule management</li>
+                        <li>Trip logging and analytics</li>
+                        <li>Admin dashboard for fleet management</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

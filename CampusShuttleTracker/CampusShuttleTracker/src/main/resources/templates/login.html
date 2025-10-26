@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Campus Shuttle Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" th:href="@{/}">
+                <i class="bi bi-bus-front"></i>
+                Campus Shuttle Tracker
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-muted" th:href="@{/}">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Side - Login Form -->
+            <div class="col-lg-6 d-flex align-items-center">
+                <div class="w-100 px-4 px-lg-5">
+                    <div class="mx-auto" style="max-width: 400px;">
+                        <!-- Logo and Title -->
+                        <div class="text-center mb-5">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="bi bi-bus-front"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-2">Welcome Back</h2>
+                            <p class="text-muted">Sign in to access Campus Shuttle Tracker</p>
+                        </div>
+
+                        <!-- Alert Messages -->
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <span th:text="${error}">Login failed. Please try again.</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        
+                        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span th:text="${success}">Registration successful! Please login.</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form th:action="@{/login}" method="post" id="loginForm">
+                            <div class="mb-3">
+                                <label for="name" class="form-label text-dark fw-medium">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+                                    <input type="text" 
+                                           class="form-control border-start-0 ps-0" 
+                                           id="name" 
+                                           name="name" 
+                                           placeholder="Enter your full name" 
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label text-dark fw-medium">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-envelope text-muted"></i>
+                                    </span>
+                                    <input type="email" 
+                                           class="form-control border-start-0 ps-0" 
+                                           id="email" 
+                                           name="email" 
+                                           placeholder="Enter your email" 
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-dark fw-medium">Select Your Role</label>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="role" id="student" value="Student" required>
+                                        <label class="btn btn-outline-primary w-100 py-3" for="student">
+                                            <i class="bi bi-mortarboard d-block mb-1" style="font-size: 1.5rem;"></i>
+                                            <small class="fw-medium">Student</small>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="role" id="faculty" value="Staff" required>
+                                        <label class="btn btn-outline-success w-100 py-3" for="faculty">
+                                            <i class="bi bi-briefcase d-block mb-1" style="font-size: 1.5rem;"></i>
+                                            <small class="fw-medium">Faculty</small>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="role" id="admin" value="Admin" required>
+                                        <label class="btn btn-outline-warning w-100 py-3" for="admin">
+                                            <i class="bi bi-gear d-block mb-1" style="font-size: 1.5rem;"></i>
+                                            <small class="fw-medium">Admin</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Sign In
+                            </button>
+                        </form>
+
+                        <!-- Divider -->
+                        <div class="text-center mb-3">
+                            <span class="text-muted">or</span>
+                        </div>
+
+                        <!-- Register Link -->
+                        <div class="text-center">
+                            <p class="text-muted mb-0">
+                                Don't have an account? 
+                                <a href="#" class="text-primary text-decoration-none fw-medium" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                    Create Account
+                                </a>
+                            </p>
+                        </div>
+
+                        <!-- Help Text -->
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="text-dark mb-2">
+                                <i class="bi bi-info-circle text-primary me-2"></i>
+                                Role Information:
+                            </h6>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                <li class="mb-1"><strong>Student:</strong> View shuttle schedules and track trips</li>
+                                <li class="mb-1"><strong>Faculty:</strong> Access advanced scheduling and trip details</li>
+                                <li><strong>Admin:</strong> Full system management and reporting</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Information Panel -->
+            <div class="col-lg-6 bg-primary d-none d-lg-flex align-items-center">
+                <div class="text-white p-5">
+                    <div class="mb-5">
+                        <h1 class="display-4 fw-bold mb-4">Campus Shuttle Tracker</h1>
+                        <p class="lead mb-4">Your comprehensive solution for campus transportation management and real-time shuttle tracking.</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="bi bi-geo-alt" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-2">Real-time Tracking</h5>
+                                    <p class="mb-0 opacity-75">Track shuttle locations and arrival times in real-time</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="bi bi-calendar-check" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-2">Smart Scheduling</h5>
+                                    <p class="mb-0 opacity-75">Efficiently manage and optimize shuttle schedules</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="bi bi-graph-up" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-2">Analytics & Reports</h5>
+                                    <p class="mb-0 opacity-75">Comprehensive insights and usage analytics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top border-white border-opacity-25">
+                        <p class="mb-0 opacity-75">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Secure, reliable, and user-friendly campus transportation management
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title">Create New Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form th:action="@{/register}" method="post" id="registerForm">
+                        <div class="mb-3">
+                            <label for="regName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="regName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="regEmail" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="Student">Student</option>
+                                <option value="Staff">Faculty</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="registerForm" class="btn btn-primary">Create Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add form validation feedback
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
+            // Add animation to role selection
+            const roleButtons = document.querySelectorAll('input[name="role"]');
+            roleButtons.forEach(button => {
+                button.addEventListener('change', function() {
+                    // Remove previous selections
+                    roleButtons.forEach(btn => {
+                        btn.nextElementSibling.classList.remove('animate__pulse');
+                    });
+                    
+                    // Add animation to selected
+                    if (this.checked) {
+                        this.nextElementSibling.classList.add('animate__pulse');
+                    }
+                });
+            });
+
+            // Auto-dismiss alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>
