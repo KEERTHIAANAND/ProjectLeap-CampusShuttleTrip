@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Campus Shuttle Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" th:href="@{/}">
+                <i class="bi bi-bus-front"></i>
+                Campus Shuttle Tracker
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${userRole == 'Admin'}">
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="bi bi-gear"></i> Admin
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> 
+                            <span th:text="${loggedInUser.name}">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <small class="text-muted">Role: </small>
+                                    <span class="badge bg-primary" th:text="${userRole}">Role</span>
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/dashboard}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <!-- Welcome Greeting -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-light border-0 shadow-sm">
+                    <h3 class="alert-heading mb-2">
+                        <i class="bi bi-person-wave text-primary"></i>
+                        Welcome, <span th:text="${loggedInUser.name}">User</span>!
+                    </h3>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-calendar-date"></i> 
+                        <span th:text="${#dates.format(#dates.createNow(), 'EEEE, MMMM dd, yyyy')}">Today's Date</span>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        <i class="bi bi-person-badge"></i>
+                        Role: <span class="badge bg-primary" th:text="${userRole}">Role</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-funnel text-primary"></i> Schedule Filters
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="dateFilter" 
+                                   th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Route</label>
+                            <select class="form-select" id="routeFilter">
+                                <option value="">All Routes</option>
+                                <option value="Main Campus">Main Campus</option>
+                                <option value="North Campus">North Campus</option>
+                                <option value="South Campus">South Campus</option>
+                                <option value="Hostel Route">Hostel Route</option>
+                                <option value="Library Circuit">Library Circuit</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <select class="form-select" id="locationFilter">
+                                <option value="">All Locations</option>
+                                <option value="Main Gate">Main Gate</option>
+                                <option value="Academic Block">Academic Block</option>
+                                <option value="Library">Library</option>
+                                <option value="Cafeteria">Cafeteria</option>
+                                <option value="Hostel Area">Hostel Area</option>
+                                <option value="Sports Complex">Sports Complex</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="applyFilters()">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm w-100 mt-2" onclick="clearFilters()">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                
+                <!-- Admin: Shuttle Management -->
+                <div class="card border-0 shadow-sm mb-4" th:if="${userRole == 'Admin'}">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-gear text-warning"></i>
+                            Shuttle Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${allShuttles != null and not #lists.isEmpty(allShuttles)}">
+                            <div class="row">
+                                <div class="col-md-6 col-xl-4 mb-3" th:each="shuttle : ${allShuttles}">
+                                    <div class="card border">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-bus-front text-primary"></i>
+                                                <span th:text="${shuttle.shuttleNumber}">SH001</span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form th:action="@{'/admin/shuttle/' + ${shuttle.shuttleId} + '/update'}" method="post">
+                                                <div class="mb-2">
+                                                    <label class="form-label small">Route</label>
+                                                    <input type="text" class="form-control form-control-sm" name="route" 
+                                                           th:value="${shuttle.route}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small">Status</label>
+                                                    <select class="form-select form-select-sm" name="status" required>
+                                                        <option value="Active" th:selected="${shuttle.status == 'Active'}">Active</option>
+                                                        <option value="Maintenance" th:selected="${shuttle.status == 'Maintenance'}">Maintenance</option>
+                                                        <option value="Offline" th:selected="${shuttle.status == 'Offline'}">Offline</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Capacity</label>
+                                                    <input type="number" class="form-control form-control-sm" name="capacity" 
+                                                           th:value="${shuttle.capacity}" min="1" max="100">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                    <i class="bi bi-check-circle"></i> Update
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${allShuttles != null and not #lists.isEmpty(allShuttles)}" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-bus display-4 mb-3"></i>
+                                <h5>No Shuttles Available</h5>
+                                <p>No shuttles found in the system.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student/Faculty: Available Shuttles with Boarding/Alighting -->
+                <div class="card border-0 shadow-sm mb-4" th:if="${userRole == 'Student' or userRole == 'Faculty' or userRole == 'Staff'}">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-bus-front text-success"></i>
+                            Available Shuttles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${activeTrips != null and not #lists.isEmpty(activeTrips)}">
+                            <div class="row">
+                                <div class="col-md-6 col-lg-4 mb-3" th:each="trip : ${activeTrips}">
+                                    <div class="card border border-success">
+                                        <div class="card-header bg-light">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-geo-alt text-success"></i>
+                                                    <span th:text="${trip.shuttle != null ? trip.shuttle.route : 'Unknown Route'}">Main Campus</span>
+                                                </h6>
+                                                <span class="badge bg-success">Active</span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-2">
+                                                <strong>Trip ID:</strong> <span class="text-primary" th:text="'#' + ${trip.tripId}">#001</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Shuttle:</strong> <span th:text="${trip.shuttle != null ? trip.shuttle.shuttleNumber : 'N/A'}">SH001</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Status:</strong> <span th:text="${trip.currentStatus}">Ongoing</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Route:</strong> 
+                                                <span th:if="${trip.fromLocation != null and trip.toLocation != null}" 
+                                                      th:text="${trip.fromLocation + ' → ' + trip.toLocation}">Campus → Library</span>
+                                                <span th:unless="${trip.fromLocation != null and trip.toLocation != null}" 
+                                                      class="text-muted">Route details not available</span>
+                                            </div>
+                                            <div class="d-grid gap-2 mt-3">
+                                                <form th:action="@{'/dashboard/board/' + ${trip.tripId}}" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-success btn-sm w-100">
+                                                        <i class="bi bi-box-arrow-in-right"></i> Board Shuttle
+                                                    </button>
+                                                </form>
+                                                <form th:action="@{'/dashboard/alight/' + ${trip.tripId}}" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-warning btn-sm w-100">
+                                                        <i class="bi bi-box-arrow-left"></i> Alight Shuttle
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${activeTrips != null and not #lists.isEmpty(activeTrips)}" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-bus display-4 mb-3"></i>
+                                <h5>No Active Shuttles</h5>
+                                <p>There are currently no active shuttles available for boarding.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User-Specific Trip History -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clock-history text-info"></i>
+                            <span th:if="${userRole == 'Admin'}">All Trip History</span>
+                            <span th:unless="${userRole == 'Admin'}">My Trip History</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${recentLogs != null and not #lists.isEmpty(recentLogs)}">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th th:if="${userRole == 'Admin'}">User</th>
+                                            <th>Trip</th>
+                                            <th>Shuttle</th>
+                                            <th>Action</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="log : ${recentLogs}">
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold" th:text="${#temporals.format(log.timestamp, 'MMM dd, yyyy')}">Oct 28, 2025</span>
+                                                    <small class="text-muted" th:text="${#temporals.format(log.timestamp, 'HH:mm:ss')}">09:30:00</small>
+                                                </div>
+                                            </td>
+                                            <td th:if="${userRole == 'Admin'}">
+                                                <span th:if="${log.user != null}" th:text="${log.user.name}">John Doe</span>
+                                                <span th:unless="${log.user != null}" class="text-muted">Unknown User</span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${log.trip != null}" class="text-primary" th:text="'#' + ${log.trip.tripId}">#001</span>
+                                                <span th:unless="${log.trip != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${log.trip != null and log.trip.shuttle != null}" th:text="${log.trip.shuttle.shuttleNumber}">SH001</span>
+                                                <span th:unless="${log.trip != null and log.trip.shuttle != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${log.action == 'Boarding'}" class="badge bg-success" th:text="${log.action}">Boarding</span>
+                                                <span th:if="${log.action == 'Alighting'}" class="badge bg-warning" th:text="${log.action}">Alighting</span>
+                                                <span th:unless="${log.action == 'Boarding' or log.action == 'Alighting'}" class="badge bg-info" th:text="${log.action}">Other</span>
+                                            </td>
+                                            <td>
+                                                <small th:if="${log.remarks != null and not #strings.isEmpty(log.remarks)}" 
+                                                       th:text="${log.remarks}">Student boarded shuttle</small>
+                                                <small th:unless="${log.remarks != null and not #strings.isEmpty(log.remarks)}" 
+                                                       class="text-muted">No remarks</small>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div th:unless="${recentLogs != null and not #lists.isEmpty(recentLogs)}" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-journal-x display-4 mb-3"></i>
+                                <h5>No Trip History</h5>
+                                <p th:if="${userRole == 'Admin'}">No trip logs found in the system.</p>
+                                <p th:unless="${userRole == 'Admin'}">You haven't made any trips yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shuttle Schedule View -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-calendar-week text-primary"></i>
+                                Shuttle Schedule
+                            </h5>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="viewType" id="tableView" checked>
+                                <label class="btn btn-outline-primary" for="tableView">
+                                    <i class="bi bi-table"></i> Table
+                                </label>
+                                <input type="radio" class="btn-check" name="viewType" id="calendarView">
+                                <label class="btn btn-outline-primary" for="calendarView">
+                                    <i class="bi bi-calendar-week"></i> Calendar
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Table View -->
+                        <div id="scheduleTableView">
+                            <div th:if="${todaysTrips != null and !todaysTrips.empty}">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="scheduleTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Trip ID</th>
+                                                <th>Shuttle</th>
+                                                <th>Route</th>
+                                                <th>Date</th>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                                <th>Status</th>
+                                                <th>Location</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="trip : ${todaysTrips}">
+                                                <td>
+                                                    <strong class="text-primary" th:text="'#' + ${trip.tripId}">#001</strong>
+                                                </td>
+                                                <td>
+                                                    <div th:if="${trip.shuttle != null}">
+                                                        <i class="bi bi-bus-front text-primary"></i>
+                                                        <span th:text="${trip.shuttle.shuttleNumber}">SH001</span>
+                                                    </div>
+                                                    <span th:unless="${trip.shuttle != null}" class="text-muted">Not Assigned</span>
+                                                </td>
+                                                <td>
+                                                    <span th:if="${trip.shuttle != null}" class="badge bg-light text-dark" th:text="${trip.shuttle.route}">Main Campus</span>
+                                                    <span th:unless="${trip.shuttle != null}" class="text-muted">N/A</span>
+                                                </td>
+                                                <td th:text="${#dates.format(trip.tripDate, 'MMM dd, yyyy')}">Oct 27, 2025</td>
+                                                <td>
+                                                    <i class="bi bi-clock text-muted"></i>
+                                                    <span th:text="${trip.startTime}">08:00</span>
+                                                </td>
+                                                <td>
+                                                    <i class="bi bi-clock-fill text-muted"></i>
+                                                    <span th:text="${trip.endTime ?: 'N/A'}">18:00</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" 
+                                                          th:classappend="${trip.currentStatus == 'Ongoing'} ? 'bg-success' : 
+                                                                         (${trip.currentStatus == 'Scheduled'} ? 'bg-primary' : 'bg-secondary')"
+                                                          th:text="${trip.currentStatus}">Scheduled</span>
+                                                </td>
+                                                <td>
+                                                    <i class="bi bi-geo-alt text-success"></i>
+                                                    <small class="text-muted">Campus Route</small>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div th:unless="${todaysTrips != null and !todaysTrips.empty}" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-calendar-x display-4 mb-3"></i>
+                                    <h5>No Schedules Available</h5>
+                                    <p>No shuttle schedules found for the selected criteria. Try adjusting your filters.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar View (Hidden by default) -->
+                        <div id="scheduleCalendarView" style="display: none;">
+                            <div class="calendar-grid">
+                                <div class="text-center">
+                                    <p class="text-muted">
+                                        <i class="bi bi-calendar-week display-4 mb-3"></i>
+                                    </p>
+                                    <h5>Calendar View</h5>
+                                    <p>Calendar view of shuttle schedules will be displayed here.</p>
+                                    <small class="text-muted">Feature coming soon with interactive calendar integration.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip History -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clock-history text-info"></i>
+                                Trip History
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm" id="historyFilter" style="width: auto;">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                                <button class="btn btn-outline-primary btn-sm" onclick="exportHistory()">
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${recentLogs != null and !recentLogs.empty}">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="historyTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th>Trip ID</th>
+                                            <th>Route</th>
+                                            <th>Shuttle ID</th>
+                                            <th>Action</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="log : ${recentLogs}" th:if="${logStat.index < 10}">
+                                            <td>
+                                                <div>
+                                                    <strong th:text="${log.timestamp != null ? #temporals.format(log.timestamp, 'MMM dd, yyyy') : 'Unknown date'}">Oct 27, 2025</strong>
+                                                </div>
+                                                <small class="text-muted" th:text="${log.timestamp != null ? #temporals.format(log.timestamp, 'HH:mm') : 'Unknown time'}">08:30</small>
+                                            </td>
+                                            <td>
+                                                <strong class="text-primary" th:if="${log.trip != null}" th:text="'#' + ${log.trip.tripId}">#001</strong>
+                                                <span th:unless="${log.trip != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${log.trip != null and log.trip.shuttle != null}" 
+                                                      class="badge bg-light text-dark" th:text="${log.trip.shuttle.route}">Main Campus</span>
+                                                <span th:unless="${log.trip != null and log.trip.shuttle != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td>
+                                                <div th:if="${log.trip != null and log.trip.shuttle != null}">
+                                                    <i class="bi bi-bus-front text-primary"></i>
+                                                    <span th:text="${log.trip.shuttle.shuttleNumber}">SH001</span>
+                                                </div>
+                                                <span th:unless="${log.trip != null and log.trip.shuttle != null}" class="text-muted">N/A</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge" 
+                                                      th:classappend="${log.action == 'Boarding'} ? 'bg-success' : 
+                                                                     (${log.action == 'Alighting'} ? 'bg-warning' : 
+                                                                     (${log.action == 'StatusUpdate'} ? 'bg-primary' : 'bg-info'))"
+                                                      th:text="${log.action}">Boarding</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock"></i>
+                                                    <span th:if="${log.trip != null}" th:text="${log.trip.startTime + (log.trip.endTime != null ? ' - ' + log.trip.endTime : '')}">08:00 - 18:00</span>
+                                                    <span th:unless="${log.trip != null}">N/A</span>
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success" th:if="${log.trip != null and log.trip.currentStatus == 'Completed'}">Completed</span>
+                                                <span class="badge bg-primary" th:if="${log.trip != null and log.trip.currentStatus == 'Ongoing'}">Ongoing</span>
+                                                <span class="badge bg-secondary" th:if="${log.trip != null and log.trip.currentStatus == 'Scheduled'}">Scheduled</span>
+                                                <span class="badge bg-light text-dark" th:unless="${log.trip != null}">N/A</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3" th:if="${recentLogs.size() > 10}">
+                                <button class="btn btn-outline-primary" onclick="loadMoreHistory()">
+                                    <i class="bi bi-arrow-down"></i> Load More History
+                                </button>
+                            </div>
+                        </div>
+                        <div th:unless="${recentLogs != null and !recentLogs.empty}" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-clock-history display-4 mb-3"></i>
+                                <h5>No Trip History</h5>
+                                <p>No previous shuttle rides to display. Your trip history will appear here after taking shuttle rides.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2025 Campus Shuttle Tracker. 
+                <span class="text-primary">Keeping campus transportation connected.</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/app.js}"></script>
+    
+    <script>
+        // View toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableViewBtn = document.getElementById('tableView');
+            const calendarViewBtn = document.getElementById('calendarView');
+            const tableViewDiv = document.getElementById('scheduleTableView');
+            const calendarViewDiv = document.getElementById('scheduleCalendarView');
+            
+            tableViewBtn.addEventListener('change', function() {
+                if (this.checked) {
+                    tableViewDiv.style.display = 'block';
+                    calendarViewDiv.style.display = 'none';
+                }
+            });
+            
+            calendarViewBtn.addEventListener('change', function() {
+                if (this.checked) {
+                    tableViewDiv.style.display = 'none';
+                    calendarViewDiv.style.display = 'block';
+                }
+            });
+        });
+        
+        function applyFilters() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const routeFilter = document.getElementById('routeFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            console.log('Applying filters:', {
+                date: dateFilter,
+                route: routeFilter,
+                location: locationFilter,
+                status: statusFilter
+            });
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (dateFilter) params.append('date', dateFilter);
+            if (routeFilter) params.append('route', routeFilter);
+            if (locationFilter) params.append('location', locationFilter);
+            if (statusFilter) params.append('status', statusFilter);
+            
+            // Reload page with filters
+            const currentUrl = new URL(window.location);
+            params.forEach((value, key) => {
+                currentUrl.searchParams.set(key, value);
+            });
+            
+            window.location.href = currentUrl.toString();
+        }
+        
+        function clearFilters() {
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('routeFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            
+            // Reload page without query parameters
+            window.location.href = window.location.pathname;
+        }
+        
+        function exportHistory() {
+            const historyFilter = document.getElementById('historyFilter').value;
+            console.log('Exporting history for period:', historyFilter);
+            
+            // Create CSV export (basic implementation)
+            const table = document.getElementById('historyTable');
+            if (table) {
+                let csv = [];
+                const rows = table.querySelectorAll('tr');
+                
+                for (let i = 0; i < rows.length; i++) {
+                    const row = [], cols = rows[i].querySelectorAll('td, th');
+                    
+                    for (let j = 0; j < cols.length; j++) {
+                        row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+                    }
+                    
+                    csv.push(row.join(','));
+                }
+                
+                // Download CSV
+                const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const downloadLink = document.createElement('a');
+                downloadLink.download = 'trip_history_' + new Date().toISOString().split('T')[0] + '.csv';
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+        }
+        
+        function loadMoreHistory() {
+            console.log('Loading more history...');
+            // Implementation for pagination/lazy loading
+            // This could make an AJAX call to fetch more records
+            alert('Loading more history records...');
+        }
+        
+        // History filter change handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const historyFilter = document.getElementById('historyFilter');
+            if (historyFilter) {
+                historyFilter.addEventListener('change', function() {
+                    const filterValue = this.value;
+                    console.log('History filter changed to:', filterValue);
+                    
+                    // Apply filter to table (basic client-side filtering)
+                    const table = document.getElementById('historyTable');
+                    if (table) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        const today = new Date();
+                        
+                        rows.forEach(row => {
+                            const dateCell = row.querySelector('td:first-child strong');
+                            if (dateCell) {
+                                const rowDate = new Date(dateCell.textContent);
+                                let showRow = true;
+                                
+                                switch (filterValue) {
+                                    case 'today':
+                                        showRow = rowDate.toDateString() === today.toDateString();
+                                        break;
+                                    case 'week':
+                                        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                                        showRow = rowDate >= weekAgo;
+                                        break;
+                                    case 'month':
+                                        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                                        showRow = rowDate >= monthAgo;
+                                        break;
+                                    case 'all':
+                                    default:
+                                        showRow = true;
+                                        break;
+                                }
+                                
+                                row.style.display = showRow ? '' : 'none';
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

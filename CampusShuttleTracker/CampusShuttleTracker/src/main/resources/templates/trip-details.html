@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Tracking - Campus Shuttle Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" th:href="@{/}">
+                <i class="bi bi-bus-front"></i>
+                Campus Shuttle Tracker
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/schedules}">
+                            <i class="bi bi-calendar-week"></i> Schedules
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/trip-logs}">
+                            <i class="bi bi-clipboard-data"></i> Trip Logs
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${userRole == 'Admin'}">
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="bi bi-gear"></i> Admin
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav" th:if="${loggedInUser != null}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> 
+                            <span th:text="${loggedInUser.name}">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <small class="text-muted">Role: </small>
+                                    <span class="badge bg-primary" th:text="${userRole}">Role</span>
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/dashboard}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Trip Tracking</li>
+                    </ol>
+                </nav>
+
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-geo-alt text-primary"></i> 
+                        Trip Tracking
+                        <span class="text-muted" th:text="'#' + ${trip.tripId}">#001</span>
+                    </h2>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-secondary" th:href="@{/dashboard}">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="refreshTracking()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Trip Information -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-bus-front text-primary"></i>
+                            Trip Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Trip ID</label>
+                                    <div class="fw-bold" th:text="'#' + ${trip.tripId}">#001</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Date</label>
+                                    <div class="fw-bold" th:text="${trip.tripDate}">2025-10-27</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Start Time</label>
+                                    <div class="fw-bold" th:text="${trip.startTime}">08:00</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">End Time</label>
+                                    <div class="fw-bold" th:text="${trip.endTime ?: 'Not specified'}">18:00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Current Status</label>
+                                    <div>
+                                        <span class="badge fs-6" 
+                                              th:classappend="${trip.currentStatus == 'Ongoing'} ? 'bg-success' : 
+                                                             (${trip.currentStatus == 'Scheduled'} ? 'bg-primary' : 'bg-secondary')"
+                                              th:text="${trip.currentStatus}">Scheduled</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3" th:if="${trip.shuttle != null}">
+                                    <label class="form-label text-muted">Shuttle</label>
+                                    <div class="fw-bold">
+                                        <i class="bi bi-bus-front text-primary"></i>
+                                        <span th:text="${trip.shuttle.shuttleNumber}">SH001</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3" th:if="${trip.shuttle != null}">
+                                    <label class="form-label text-muted">Route</label>
+                                    <div class="fw-bold" th:text="${trip.shuttle.route}">Main Campus Route</div>
+                                </div>
+                                <div class="mb-3" th:if="${trip.shuttle != null}">
+                                    <label class="form-label text-muted">Shuttle Capacity</label>
+                                    <div class="fw-bold" th:text="${trip.shuttle.capacity + ' passengers'}">50 passengers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip Activity Logs -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clipboard-data text-info"></i>
+                                Trip Activity Timeline
+                            </h5>
+                            <span class="badge bg-info" th:text="${tripLogs != null ? tripLogs.size() : 0}">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${tripLogs != null and !tripLogs.empty}">
+                            <div class="timeline">
+                                <div class="timeline-item mb-3" th:each="log : ${tripLogs}">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="timeline-marker" 
+                                                 th:classappend="${log.action == 'Boarding'} ? 'bg-success' : 
+                                                                (${log.action == 'Alighting'} ? 'bg-warning' : 
+                                                                (${log.action == 'StatusUpdate'} ? 'bg-primary' : 'bg-info'))">
+                                                <i class="bi" 
+                                                   th:classappend="${log.action == 'Boarding'} ? 'bi-arrow-up-circle' : 
+                                                                  (${log.action == 'Alighting'} ? 'bi-arrow-down-circle' : 
+                                                                  (${log.action == 'StatusUpdate'} ? 'bi-gear' : 'bi-info-circle'))"
+                                                   style="color: white; font-size: 0.9rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="card border-0 bg-light">
+                                                <div class="card-body py-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="mb-1">
+                                                            <span class="badge me-2" 
+                                                                  th:classappend="${log.action == 'Boarding'} ? 'bg-success' : 
+                                                                                 (${log.action == 'Alighting'} ? 'bg-warning' : 
+                                                                                 (${log.action == 'StatusUpdate'} ? 'bg-primary' : 'bg-info'))"
+                                                                  th:text="${log.action}">Activity</span>
+                                                        </h6>
+                                                        <small class="text-muted" 
+                                                               th:text="${log.timestamp != null ? #temporals.format(log.timestamp, 'MMM dd, yyyy HH:mm:ss') : 'Unknown time'}">
+                                                            Oct 27, 2025 08:00:00
+                                                        </small>
+                                                    </div>
+                                                    <div class="row" th:if="${log.user != null}">
+                                                        <div class="col-md-12">
+                                                            <p class="mb-1">
+                                                                <i class="bi bi-person text-primary"></i>
+                                                                <strong th:text="${log.user.name}">User</strong>
+                                                                <span class="badge bg-secondary ms-1" th:text="${log.user.role}">Role</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div th:if="${log.remarks != null}" class="mt-2 pt-2 border-top">
+                                                        <p class="mb-0" th:text="${log.remarks}">
+                                                            Activity details
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${tripLogs != null and !tripLogs.empty}" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-clipboard-x display-4 mb-3"></i>
+                                <h5>No Activity Logs</h5>
+                                <p>No activity has been recorded for this trip yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracking Sidebar -->
+            <div class="col-lg-4">
+                <!-- Live Tracking -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-broadcast text-success"></i> Live Tracking
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" onclick="trackRealTimeLocation()">
+                                <i class="bi bi-geo-alt"></i> Track Current Location
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="viewRoute()">
+                                <i class="bi bi-map"></i> View Route Map
+                            </button>
+                            <button class="btn btn-outline-info" onclick="refreshTracking()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                            </button>
+                        </div>
+                        
+                        <!-- Mock tracking info -->
+                        <div class="mt-3 p-3 bg-light rounded" th:if="${trip.currentStatus == 'Ongoing'}">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="spinner-grow spinner-grow-sm text-success me-2"></div>
+                                <small class="text-success fw-bold">Live Tracking Active</small>
+                            </div>
+                            <div class="mb-1">
+                                <small class="text-muted">Last Update:</small>
+                                <small class="fw-bold">2 minutes ago</small>
+                            </div>
+                            <div class="mb-1">
+                                <small class="text-muted">Estimated Arrival:</small>
+                                <small class="fw-bold">15 minutes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shuttle Information -->
+                <div class="card border-0 shadow-sm" th:if="${trip.shuttle != null}">
+                    <div class="card-header bg-white">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-bus-front text-primary"></i> Shuttle Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>Number:</strong> 
+                            <span th:text="${trip.shuttle.shuttleNumber}">SH001</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Route:</strong> 
+                            <span th:text="${trip.shuttle.route}">Main Campus</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Capacity:</strong> 
+                            <span th:text="${trip.shuttle.capacity + ' passengers'}">50 passengers</span>
+                        </div>
+                        <div class="mb-0">
+                            <strong>Status:</strong> 
+                            <span class="badge" 
+                                  th:classappend="${trip.shuttle.status == 'Active'} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${trip.shuttle.status}">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2025 Campus Shuttle Tracker. 
+                <span class="text-primary">Real-time shuttle tracking and monitoring.</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function trackRealTimeLocation() {
+            alert('Live tracking: Shuttle location, speed, and estimated arrival times.\n\nThis feature would integrate with GPS systems to provide real-time shuttle positioning.');
+        }
+        
+        function viewRoute() {
+            alert('Route map: Interactive map showing shuttle route, stops, and current position.\n\nThis would display a detailed route map with real-time updates.');
+        }
+        
+        function refreshTracking() {
+            location.reload();
+        }
+    </script>
+
+    <style>
+        .timeline-marker {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 2.5rem;
+            bottom: -2rem;
+            width: 2px;
+            background: linear-gradient(to bottom, #dee2e6, #f8f9fa);
+            z-index: -1;
+        }
+        
+        .timeline {
+            position: relative;
+        }
+        
+        .timeline-item {
+            position: relative;
+        }
+        
+        .timeline-item .card {
+            transition: all 0.2s ease;
+        }
+        
+        .timeline-item .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</body>
+</html>

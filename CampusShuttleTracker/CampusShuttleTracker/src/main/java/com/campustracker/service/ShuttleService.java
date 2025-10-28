@@ -15,4 +15,11 @@ public class ShuttleService {
     public Shuttle create(Shuttle s){ return repo.save(s); }
     public List<Shuttle> getAll(){ return repo.findAll(); }
     public Shuttle getById(Long id){ return repo.findById(id).orElseThrow(() -> new RuntimeException("Shuttle not found")); }
+    
+    public void deleteShuttle(Long id) {
+        if (!repo.existsById(id)) {
+            throw new RuntimeException("Shuttle not found with id: " + id);
+        }
+        repo.deleteById(id);
+    }
 }

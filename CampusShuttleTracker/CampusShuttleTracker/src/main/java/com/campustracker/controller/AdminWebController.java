@@ -179,20 +179,70 @@ public class AdminWebController {
         return "redirect:/admin";
     }
 
-    @DeleteMapping("/shuttles/{id}")
-    @ResponseBody
-    public String deleteShuttle(@PathVariable Long id, HttpSession session) {
-        if (!authService.isAdmin(session)) {
-            return "Access denied";
+    // Delete Shuttle
+    @PostMapping("/shuttle/delete/{id}")
+    public String deleteShuttle(@PathVariable Long id, 
+                               HttpSession session, 
+                               RedirectAttributes redirectAttributes) {
+        
+        if (!authService.isLoggedIn(session) || !authService.isAdmin(session)) {
+            return "redirect:/login";
         }
         
         try {
-            shuttleService.getById(id); // Check if exists
-            // shuttleService.delete(id); // You would implement delete in your service
-            return "Shuttle deleted successfully";
+            shuttleService.deleteShuttle(id);
+            redirectAttributes.addFlashAttribute("success", "Shuttle deleted successfully!");
         } catch (Exception e) {
-            return "Error deleting shuttle: " + e.getMessage();
+            redirectAttributes.addFlashAttribute("error", "Error deleting shuttle: " + e.getMessage());
         }
+        
+        return "redirect:/admin";
+    }
+
+    // Delete Trip
+    @PostMapping("/trip/delete/{id}")
+    public String deleteTrip(@PathVariable Long id, 
+                            HttpSession session, 
+                            RedirectAttributes redirectAttributes) {
+        
+        if (!authService.isLoggedIn(session) || !authService.isAdmin(session)) {
+            return "redirect:/login";
+        }
+        
+        try {
+            tripService.deleteTrip(id);
+            redirectAttributes.addFlashAttribute("success", "Trip deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting trip: " + e.getMessage());
+        }
+        
+        return "redirect:/admin";
+    }
+
+    // Delete User
+    @PostMapping("/user/delete/{id}")
+    public String deleteUser(@PathVariable Long id, 
+                            HttpSession session, 
+                            RedirectAttributes redirectAttributes) {
+        
+        if (!authService.isLoggedIn(session) || !authService.isAdmin(session)) {
+            return "redirect:/login";
+        }
+        
+        try {
+            User currentUser = authService.getLoggedInUser(session);
+            if (currentUser.getUserId().equals(id)) {
+                redirectAttributes.addFlashAttribute("error", "You cannot delete your own account!");
+                return "redirect:/admin";
+            }
+            
+            userService.deleteUser(id);
+            redirectAttributes.addFlashAttribute("success", "User deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting user: " + e.getMessage());
+        }
+        
+        return "redirect:/admin";
     }
 
     @GetMapping("/reports")

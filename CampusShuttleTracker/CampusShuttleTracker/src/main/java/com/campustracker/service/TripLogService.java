@@ -59,4 +59,43 @@ public class TripLogService {
             .limit(limit)
             .collect(java.util.stream.Collectors.toList());
     }
+    
+    // Check if user is currently boarded on a specific trip
+    public boolean isUserBoardedOnTrip(Long userId, Long tripId) {
+        List<TripLog> userLogs = logRepo.findAll().stream()
+            .filter(log -> log.getUser() != null && log.getUser().getUserId().equals(userId))
+            .filter(log -> log.getTrip() != null && log.getTrip().getTripId().equals(tripId))
+            .sorted((log1, log2) -> {
+                if (log1.getTimestamp() == null && log2.getTimestamp() == null) return 0;
+                if (log1.getTimestamp() == null) return 1;
+                if (log2.getTimestamp() == null) return -1;
+                return log2.getTimestamp().compareTo(log1.getTimestamp());
+            })
+            .collect(java.util.stream.Collectors.toList());
+        
+        if (userLogs.isEmpty()) {
+            return false;
+        }
+        
+        // Get the most recent action for this user on this trip
+        TripLog lastLog = userLogs.get(0);
+        return "Boarding".equals(lastLog.getAction());
+    }
+    
+    // Get user's recent trip history (unique trips only)
+    public List<TripLog> getUserRecentTrips(Long userId, int limit) {
+        List<TripLog> userLogs = logRepo.findAll().stream()
+            .filter(log -> log.getUser() != null && log.getUser().getUserId() != null && log.getUser().getUserId().equals(userId))
+            .filter(log -> log.getTrip() != null && log.getTrip().getTripId() != null)
+            .sorted((log1, log2) -> {
+                if (log1.getTimestamp() == null && log2.getTimestamp() == null) return 0;
+                if (log1.getTimestamp() == null) return 1;
+                if (log2.getTimestamp() == null) return -1;
+                return log2.getTimestamp().compareTo(log1.getTimestamp());
+            })
+            .limit(limit)
+            .collect(java.util.stream.Collectors.toList());
+        
+        return userLogs;
+    }
 }
